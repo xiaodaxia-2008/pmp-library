@@ -51,9 +51,6 @@ if(PMP_BUILD_VIEWERS)
 endif()
 
 # ── Eigen3 ───────────────────────────────────────────────────────────────────
-if(NOT DEFINED EIGEN3_INCLUDE_DIR)
-  set(EIGEN3_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/external/eigen-3.4.0")
-endif()
 find_package(Eigen3 3.4.0 REQUIRED)
 
 # ── Coverage (debug only) ────────────────────────────────────────────────────
