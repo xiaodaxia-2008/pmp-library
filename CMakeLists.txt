@@ -51,7 +51,7 @@ if(PMP_BUILD_VIEWERS)
 endif()
 
 # ── Eigen3 ───────────────────────────────────────────────────────────────────
-find_package(Eigen3 3.4.0 REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 # ── Coverage (debug only) ────────────────────────────────────────────────────
 if(CMAKE_BUILD_TYPE STREQUAL "Debug" AND ENABLE_COVERAGE AND NOT WIN32)
