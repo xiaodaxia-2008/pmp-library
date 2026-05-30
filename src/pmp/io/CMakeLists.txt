@@ -1,7 +1,7 @@
 # make sure to install headers, use relative path from top-level since we're
 # included from above
-file(GLOB HEADERS ./io/*.h)
-file(GLOB SOURCES ./io/*.cpp)
+file(GLOB HEADERS CONFIGURE_DEPENDS ./io/*.h)
+file(GLOB SOURCES CONFIGURE_DEPENDS ./io/*.cpp)
 
 if(PMP_INSTALL)
   install(FILES ${HEADERS} DESTINATION include/pmp/io)

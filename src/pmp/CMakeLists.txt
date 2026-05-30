@@ -1,5 +1,5 @@
-file(GLOB SOURCES ./*.cpp)
-file(GLOB HEADERS ./*.h)
+file(GLOB SOURCES CONFIGURE_DEPENDS ./*.cpp)
+file(GLOB HEADERS CONFIGURE_DEPENDS ./*.h)
 
 if(EMSCRIPTEN)
   add_library(pmp STATIC ${SOURCES} ${HEADERS})
@@ -10,6 +10,49 @@ endif()
 
 target_compile_features(pmp PUBLIC cxx_std_20)
 
+# ── Compile definitions ──────────────────────────────────────────────────────
+if(PMP_SCALAR_TYPE EQUAL 64)
+  target_compile_definitions(pmp PUBLIC PMP_SCALAR_TYPE_64)
+endif()
+if(PMP_INDEX_TYPE EQUAL 64)
+  target_compile_definitions(pmp PUBLIC PMP_INDEX_TYPE_64)
+endif()
+if(TUDO)
+  target_compile_definitions(pmp PUBLIC TUDO)
+endif()
+
+# ── Compiler options ─────────────────────────────────────────────────────────
+if(PMP_COMMON_CXX_FLAGS)
+  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(pmp PRIVATE ${PMP_COMMON_CXX_FLAGS})
+  endif()
+endif()
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  target_compile_options(pmp PRIVATE -Wno-deprecated-copy)
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "7.0.0")
+    target_compile_options(pmp PRIVATE -Wno-int-in-bool-context)
+  endif()
+endif()
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT EMSCRIPTEN)
+  target_compile_options(pmp PRIVATE --system-header-prefix=Eigen)
+endif()
+
+if(WIN32)
+  target_compile_definitions(pmp PRIVATE
+    _USE_MATH_DEFINES NOMINMAX _CRT_SECURE_NO_WARNINGS)
+endif()
+
+if(MSVC)
+  target_compile_options(pmp PRIVATE /wd4267 /wd4244 /wd4305)
+endif()
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug" AND NOT WIN32)
+  target_compile_options(pmp PRIVATE -ggdb)
+endif()
+
+# ── OpenMP ───────────────────────────────────────────────────────────────────
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
   target_link_libraries(pmp PUBLIC OpenMP::OpenMP_CXX)
@@ -21,29 +64,31 @@ if(WITH_CLANG_TIDY)
   set_target_properties(pmp PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
 endif()
 
+# ── Include directories ──────────────────────────────────────────────────────
 if(NOT EMSCRIPTEN AND PMP_INSTALL)
-
-  target_include_directories(
-    pmp PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../>
-               $<INSTALL_INTERFACE:include/>)
+  target_include_directories(pmp
+    PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../>
+      $<INSTALL_INTERFACE:include/>)
   target_include_directories(pmp SYSTEM
-                             PUBLIC $<BUILD_INTERFACE:${EIGEN3_INCLUDE_DIR}>)
+    PUBLIC $<BUILD_INTERFACE:${EIGEN3_INCLUDE_DIR}>)
 
-  install(
-    TARGETS pmp
+  install(TARGETS pmp
     EXPORT pmpTargets
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     RUNTIME DESTINATION bin
-    INCLUDES
-    DESTINATION include)
+    INCLUDES DESTINATION include)
 
   install(FILES ${HEADERS} DESTINATION include/pmp/)
 else()
-  target_include_directories(pmp PUBLIC ${EIGEN3_INCLUDE_DIR}
-                                        ${CMAKE_CURRENT_SOURCE_DIR}/../)
+  target_include_directories(pmp
+    PUBLIC
+      ${EIGEN3_INCLUDE_DIR}
+      ${CMAKE_CURRENT_SOURCE_DIR}/../)
 endif()
 
+# ── Viewers ──────────────────────────────────────────────────────────────────
 if(PMP_BUILD_VIEWERS)
   add_subdirectory(viewers)
 endif()
@@ -51,8 +96,8 @@ endif()
 include(algorithms/CMakeLists.txt)
 include(io/CMakeLists.txt)
 
-if(CMAKE_C_COMPILER_ID MATCHES "GNU" AND CMAKE_CXX_COMPILER_VERSION
-                                         GREATER_EQUAL 15)
+if(CMAKE_C_COMPILER_ID MATCHES "GNU"
+   AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 15)
   set_source_files_properties(
     algorithms/decimation.cpp
     PROPERTIES COMPILE_FLAGS "-Wno-array-bounds -Wno-stringop-overflow")
