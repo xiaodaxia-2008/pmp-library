@@ -70,8 +70,6 @@ if(NOT EMSCRIPTEN AND PMP_INSTALL)
     PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../>
       $<INSTALL_INTERFACE:include/>)
-  target_include_directories(pmp SYSTEM
-    PUBLIC $<BUILD_INTERFACE:${EIGEN3_INCLUDE_DIR}>)
 
   install(TARGETS pmp
     EXPORT pmpTargets
@@ -83,10 +81,10 @@ if(NOT EMSCRIPTEN AND PMP_INSTALL)
   install(FILES ${HEADERS} DESTINATION include/pmp/)
 else()
   target_include_directories(pmp
-    PUBLIC
-      ${EIGEN3_INCLUDE_DIR}
-      ${CMAKE_CURRENT_SOURCE_DIR}/../)
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../)
 endif()
+
+target_link_libraries(pmp PUBLIC Eigen3::Eigen)
 
 # ── Viewers ──────────────────────────────────────────────────────────────────
 if(PMP_BUILD_VIEWERS)
