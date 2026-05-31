@@ -84,7 +84,7 @@ else()
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../)
 endif()
 
-target_link_libraries(pmp PUBLIC Eigen3::Eigen)
+target_link_libraries(pmp PRIVATE Eigen3::Eigen)
 
 # ── Viewers ──────────────────────────────────────────────────────────────────
 if(PMP_BUILD_VIEWERS)
